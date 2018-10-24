@@ -45,9 +45,9 @@ async def get_update_page_by_index(index):
     response = await httpclient.AsyncHTTPClient().fetch(url)
     html = response.body if isinstance(response.body, str) \
         else response.body.decode(errors='ignore')
-    print(len(html))
-    parse_html = bs(html, 'html.parse')
-    print(parse_html.find_all('li'))
+    print(url)
+    parse_html = bs(html)
+    print(parse_html.find('div', class_='listri').find_all('li '))
 
 
 def remove_fragment(url):
