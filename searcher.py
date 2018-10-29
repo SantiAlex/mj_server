@@ -56,23 +56,35 @@ class Video(tornado.web.RequestHandler):
         html = await fetch(request)
         playlist = re.findall(r'VideoInfoList=".+?"', str(html))[0][15:][:-1]
         lines = playlist.split('$$$')
+
+        index_url = {}
         for line in lines:
-            # server = i.split('$$')[0]
             videos = line.split('$$')[1].split('#')
             for video in videos:
                 url = video.split('$')[1]
-                print(url)
-        self.write({'playlist': playlist})
+                if url[0:4] == 'http':
+                    index = str(videos.index(video) + 1)
+                    if index in index_url:
+                        index_url[index].append(url)
+                    else:
+                        index_url[index] = [url]
+        self.write({'playlist': index_url})
 
 
-def make_app():
-    return tornado.web.Application([
-        (r"/search/(?P<word>[\s\S]*)", Search),
-        (r"/video/(?P<number>[\s\S]*)", Video),
-    ])
+class Application(tornado.web.Application):
+    def __init__(self):
+        handlers = [
+            (r"/search/(?P<word>[\s\S]*)", Search),
+            (r"/video/(?P<number>[\s\S]*)", Video),
+        ]
+        settings = {
+            'static_path': 'app',
+            'static_url_prefix': "/app/",
+        }
+        tornado.web.Application.__init__(self, handlers, **settings)
 
 
 if __name__ == "__main__":
-    app = make_app()
+    app = Application()
     app.listen(18888)
     tornado.ioloop.IOLoop.current().start()
