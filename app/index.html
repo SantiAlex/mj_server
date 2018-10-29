@@ -6,38 +6,62 @@
     <title>Title</title>
     <script src="/app/static/vue-dev.js"></script>
 
-    <!-- <link href="/app/static/video-js.min.css" rel="stylesheet">
-    <script src="/app/static/video-js.min.js"></script> -->
+    <link href="/app/static/video-js.min.css" rel="stylesheet">
+    <script src="/app/static/video-js.min.js"></script>
 </head>
 
 <body>
 
 
     <div id="app">
-        <div id='search'>
+        <div id='header'>
             <div id='title'>
                 <h1>西瓜看美剧</h1>
             </div>
-            <input v-model='search_word'><button @click='search'>search</button>
-            <div id='search-result'>
-                <div class='list-item' v-for='item in search_result'>
-                    {{item.name}}
+            <div id='search'>
+                <input v-model='search_word'>
+                <button @click='search'>search</button>
+            </div>
+
+        </div>
+
+        <div id='container'>
+            <div id='video'>
+                <video id="my-player" class="video-js" controls preload="auto" >
+                    <source v-bind:src="url" type="application/x-mpegURL">
+                    </source>
+
+                    <p class="vjs-no-js">
+                        To view this video please enable JavaScript, and consider upgrading to a
+                        web browser that
+                        <a href="http://videojs.com/html5-video-support/" target="_blank">
+                            supports HTML5 video
+                        </a>
+                    </p>
+                </video>
+                <div id='episodes'>
+                    <button v-for='urls,index in episodes' @click='pickEpisode(index)'>第{{index}}集</button>
+                </div>
+            </div>
+            <div id='result'>
+                <div class='list-item' v-for='item in search_result' @click='getVideo(item.id)'>
+                    <div class='pic'>
+                        <img v-bind:src='item.pic' class='video-img'>
+                    </div>
+                    <div class='video-info'>
+                        <div>
+                            <h4>{{item.name}}</h4>
+                        </div>
+
+                        {{item.state}}
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- <video id="my-player" class="video-js" controls preload="auto" data-setup='{}'>
-            <source v-bind:src="url" type="application/x-mpegURL">
-            </source>
 
-            <p class="vjs-no-js">
-                To view this video please enable JavaScript, and consider upgrading to a
-                web browser that
-                <a href="http://videojs.com/html5-video-support/" target="_blank">
-                    supports HTML5 video
-                </a>
-            </p>
-        </video> -->
+
+
     </div>
 
 </body>
@@ -50,21 +74,42 @@
     var app = new Vue({
         el: '#app',
         data: {
-            url: 'https://fenxiang2.meiju2018.com/20181005/zHe9BY3j/index.m3u8',
-            search_word:'',
-            search_result:[]
+            // https://fenxiang2.meiju2018.com/20181005/zHe9BY3j/index.m3u8
+            url: '',
+            search_word: '',
+            search_result: [],
+            episodes:{},
         },
-        methods:{
-            search(){
-                fetch('/search/'+this.search_word,{credentials: 'include'})
-                .then(response => response.json())
-                .then(json=>{
-                    this.search_result = json.list
-                })
+        methods: {
+            search() {
+                
+                // fetch('/search/' + this.search_word, { credentials: 'include' })
+                //     .then(response => response.json())
+                //     .then(json => {
+                //         this.search_result = json.list
+                //     })
+
+                this.search_result = [{ "pic": "https://pic.yefu365.com/uploads/allimg/201809/26bc96cd755dc2f4.jpg", "state": "\u66f4\u65b0\u81f37\u96c6/ \u517110\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\u7b2c\u516b\u5b63", "id": "3626" }, { "pic": "https://pic.yefu365.com/uploads/allimg/180929/46e5a21fb82f0ab9.jpg", "state": "\u5168\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\uff1a\u5973\u5deb\u96c6\u4f1a\u7b2c\u4e09\u5b63", "id": "3753" }, { "pic": "https://pic.yefu365.com/uploads/allimg/180929/074eb9bf7661bef4.jpg", "state": "\u5168\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\uff1a\u7cbe\u795e\u75c5\u9662\u7b2c\u4e8c\u5b63", "id": "3752" }, { "pic": "https://pic.yefu365.com/uploads/allimg/181005/c0ef8f866b93c863.jpg", "state": "", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\u7b2c\u4e00\u5b63", "id": "3770" }, { "pic": "https://pic.yefu365.com/uploads/allimg/171101/910668d161ca9ace.jpg", "state": "\u672c\u5b63\u7ec8/\u517111\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\uff1a\u90aa\u6559\u7b2c\u4e03\u5b63", "id": "32" }, { "pic": "https://pic.yefu365.com/uploads/allimg/201710/435b8a110f7cc7c8.jpg", "state": "\u672c\u5b63\u7ec8/\u517110\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\u7b2c\u516d\u5b63", "id": "79" }, { "pic": "https://pic.yefu365.com/uploads/allimg/171101/f4a5a41291aa4588.jpg", "state": "\u672c\u5b63\u7ec8/\u517113\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\u7b2c\u56db\u5b63", "id": "318" }, { "pic": "https://pic.yefu365.com/uploads/allimg/201711/4af7bc08bb565aca.jpg", "state": "\u672c\u5b63\u7ec8/\u517112\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\u7b2c\u4e94\u5b63", "id": "588" }]
+            },
+            getVideo(number){
+                fetch('/video/' + number, { credentials: 'include' })
+                    .then(response => response.json())
+                    .then(json => {
+                        this.episodes = json.playlist
+                    })
+            },
+            pickEpisode(index){
+                alert(index)
+                this.url=this.episodes[index][0]
+                // this.url=' https://fenxiang2.meiju2018.com/20181005/zHe9BY3j/index.m3u8'
+                console.log(this.episodes[index][0])
+                var player = videojs('my-player');
+                player.src(this.url)
+                player.play()
             }
         },
-        created(){
-            this.search_word='美国恐怖'
+        created() {
+            this.search_word = '美国恐怖'
         }
     })
 
@@ -73,15 +118,78 @@
 <style>
     body {
         font-family: arial, sans-serif;
+
+    }
+
+    #app {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: bisque;
+    }
+
+    #header {
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 60px;
+        background-color: #ccc;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    #title {
+        /* width: 50%; */
+        padding-left: 30px;
+    }
+
+    #search {
+        /* width:50%; */
+        /* float:right; */
+        /* background-color: aqua;  */
+        padding: 30px;
+    }
+
+    #container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    #video {
+        /* width: 600px; */
+        /* height: 300px; */
+        /* background-color: black; */
+    }
+
+    #result {
+        width: 300px;
+        height: 100%;
+        background-color: #aaa;
+        overflow-x: hidden;
+        overflow-y: scroll;
     }
 
     .video-js {
-        width: 100%;
-        height: 600px;
+        width: 600px;
+        height: 300px;
     }
-    .list-item{
+
+    .list-item {
         border: 1px solid #777;
         border-radius: 5px;
         margin: 10px;
+        width: 250px;
+        display: flex;
+    }
+
+    .video-img {
+        /* width: 40px; */
+        height: 100px;
     }
 </style>

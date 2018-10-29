@@ -3,6 +3,8 @@
 import time
 from datetime import timedelta
 from bs4 import BeautifulSoup as bs
+import re
+import urllib
 
 try:
     from HTMLParser import HTMLParser
@@ -40,14 +42,38 @@ def get_links_from_url(url):
     raise gen.Return(urls)
 
 
-async def get_update_page_by_index(index):
+async def get_html(url):
+    try:
+        response = await httpclient.AsyncHTTPClient().fetch(url, request_timeout=0.2)
+    finally:
+        if response.code and response.code == 200:
+            return response
+        else:
+            print('asd')
+
+
+async def get_update_list_by_index(index):
     url = 'http://www.kanmeiju.net/index.php?s=video/search/p/' + str(index) + '.html'
-    response = await httpclient.AsyncHTTPClient().fetch(url)
+    request = httpclient.HTTPRequest(url, headers={'Cookie': 'PHPSESSID=ugbrbcgpv1kc29oc740r10lmn0'}, request_timeout=2)
+    # response = await httpclient.AsyncHTTPClient().fetch(request)
+    response = await get_html(url)
+    print(response.headers)
     html = response.body if isinstance(response.body, str) \
         else response.body.decode(errors='ignore')
     print(url)
-    parse_html = bs(html)
-    print(parse_html.find('div', class_='listri').find_all('li '))
+    parse_html = bs(html, 'lxml')
+    update_list = parse_html.find('div', class_='listri').find('ul').find_all('li')
+    for i in update_list:
+        p = i.find_all('p')
+        # print(p[0].string)
+        # print(p[3].find('font').string)
+        # print(re.findall(r'detail/.+\.html',str(p[0]))[0][7:][:-5])
+    return 1
+    # return parse_html.find('div', class_='listri').find_all('li ')
+
+
+def read_update_list(update_list):
+    pass
 
 
 def remove_fragment(url):
@@ -71,11 +97,31 @@ def get_links(html):
     return url_seeker.urls
 
 
+def search(word):
+    url = 'https://www.imeiju.cc/search.php'
+    # body = {
+    #     'searchword': urllib.parse.quote(word, safe='/', encoding=None, errors=None)
+    # }
+    body = urllib.parse.urlencode({'searchword':word})
+    request = httpclient.HTTPRequest(url, method='POST', body=body)
+    client = httpclient.HTTPClient()
+    response = client.fetch(request)
+    print(response.body)
+
+
 # @gen.coroutine
 async def main():
-    for i in range(5):
-        print(i)
-        await get_update_page_by_index(i)
+    search('美国恐怖')
+
+    i = 1
+    # while 1:
+    #     print(i)
+    #
+    #     c = await get_update_list_by_index(i)
+    #     i = i + 1
+
+        # if c:
+        #     continue
         # q = queues.Queue()
         # start = time.time()
         # fetching, fetched = set(), set()

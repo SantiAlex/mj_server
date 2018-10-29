@@ -54,6 +54,7 @@ class Video(tornado.web.RequestHandler):
         url = 'https://www.imeiju.cc/' + soup.find('div', id='playlist').find('li').find('a')['href']
         request = httpclient.HTTPRequest(url)
         html = await fetch(request)
+        print(re.findall(r'VideoInfoList=".+?"', str(html)))
         playlist = re.findall(r'VideoInfoList=".+?"', str(html))[0][15:][:-1]
         lines = playlist.split('$$$')
 
