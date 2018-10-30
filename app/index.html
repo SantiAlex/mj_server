@@ -26,11 +26,11 @@
         </div>
 
         <div id='container'>
-            <div id='video'>
-                <video id="my-player" class="video-js" controls preload="auto" >
-                    <source v-bind:src="url" type="application/x-mpegURL">
-                    </source>
-
+            <div id='video' v-if='isVideoPage'>
+                <div id='lines'>
+                    <button v-for='line,index in episodes[pickEpisodeIndex]' @click='pickLine(line)'>线路{{index+1}}</button>
+                </div>
+                <video id="my-player" class="video-js vjs-big-play-centered" controls v-if='isVideoPage'>
                     <p class="vjs-no-js">
                         To view this video please enable JavaScript, and consider upgrading to a
                         web browser that
@@ -42,8 +42,9 @@
                 <div id='episodes'>
                     <button v-for='urls,index in episodes' @click='pickEpisode(index)'>第{{index}}集</button>
                 </div>
+                <button @click='test'>pause</button>
             </div>
-            <div id='result'>
+            <div id='result' v-if='!isVideoPage'>
                 <div class='list-item' v-for='item in search_result' @click='getVideo(item.id)'>
                     <div class='pic'>
                         <img v-bind:src='item.pic' class='video-img'>
@@ -78,34 +79,60 @@
             url: '',
             search_word: '',
             search_result: [],
-            episodes:{},
+            episodes: {},
+            pickEpisodeIndex: '',
+            isVideoPage: false,
+
         },
         methods: {
             search() {
-                
-                // fetch('/search/' + this.search_word, { credentials: 'include' })
-                //     .then(response => response.json())
-                //     .then(json => {
-                //         this.search_result = json.list
-                //     })
 
-                this.search_result = [{ "pic": "https://pic.yefu365.com/uploads/allimg/201809/26bc96cd755dc2f4.jpg", "state": "\u66f4\u65b0\u81f37\u96c6/ \u517110\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\u7b2c\u516b\u5b63", "id": "3626" }, { "pic": "https://pic.yefu365.com/uploads/allimg/180929/46e5a21fb82f0ab9.jpg", "state": "\u5168\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\uff1a\u5973\u5deb\u96c6\u4f1a\u7b2c\u4e09\u5b63", "id": "3753" }, { "pic": "https://pic.yefu365.com/uploads/allimg/180929/074eb9bf7661bef4.jpg", "state": "\u5168\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\uff1a\u7cbe\u795e\u75c5\u9662\u7b2c\u4e8c\u5b63", "id": "3752" }, { "pic": "https://pic.yefu365.com/uploads/allimg/181005/c0ef8f866b93c863.jpg", "state": "", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\u7b2c\u4e00\u5b63", "id": "3770" }, { "pic": "https://pic.yefu365.com/uploads/allimg/171101/910668d161ca9ace.jpg", "state": "\u672c\u5b63\u7ec8/\u517111\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\uff1a\u90aa\u6559\u7b2c\u4e03\u5b63", "id": "32" }, { "pic": "https://pic.yefu365.com/uploads/allimg/201710/435b8a110f7cc7c8.jpg", "state": "\u672c\u5b63\u7ec8/\u517110\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\u7b2c\u516d\u5b63", "id": "79" }, { "pic": "https://pic.yefu365.com/uploads/allimg/171101/f4a5a41291aa4588.jpg", "state": "\u672c\u5b63\u7ec8/\u517113\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\u7b2c\u56db\u5b63", "id": "318" }, { "pic": "https://pic.yefu365.com/uploads/allimg/201711/4af7bc08bb565aca.jpg", "state": "\u672c\u5b63\u7ec8/\u517112\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\u7b2c\u4e94\u5b63", "id": "588" }]
+                fetch('/search/' + this.search_word, { credentials: 'include' })
+                    .then(response => response.json())
+                    .then(json => {
+                        this.search_result = json.list
+                    })
+                this.isVideoPage = false
+                var player = videojs('my-player');
+                player.hide()
+                // this.search_result = [{ "pic": "https://pic.yefu365.com/uploads/allimg/201809/26bc96cd755dc2f4.jpg", "state": "\u66f4\u65b0\u81f37\u96c6/ \u517110\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\u7b2c\u516b\u5b63", "id": "3626" }, { "pic": "https://pic.yefu365.com/uploads/allimg/180929/46e5a21fb82f0ab9.jpg", "state": "\u5168\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\uff1a\u5973\u5deb\u96c6\u4f1a\u7b2c\u4e09\u5b63", "id": "3753" }, { "pic": "https://pic.yefu365.com/uploads/allimg/180929/074eb9bf7661bef4.jpg", "state": "\u5168\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\uff1a\u7cbe\u795e\u75c5\u9662\u7b2c\u4e8c\u5b63", "id": "3752" }, { "pic": "https://pic.yefu365.com/uploads/allimg/181005/c0ef8f866b93c863.jpg", "state": "", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\u7b2c\u4e00\u5b63", "id": "3770" }, { "pic": "https://pic.yefu365.com/uploads/allimg/171101/910668d161ca9ace.jpg", "state": "\u672c\u5b63\u7ec8/\u517111\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\uff1a\u90aa\u6559\u7b2c\u4e03\u5b63", "id": "32" }, { "pic": "https://pic.yefu365.com/uploads/allimg/201710/435b8a110f7cc7c8.jpg", "state": "\u672c\u5b63\u7ec8/\u517110\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\u7b2c\u516d\u5b63", "id": "79" }, { "pic": "https://pic.yefu365.com/uploads/allimg/171101/f4a5a41291aa4588.jpg", "state": "\u672c\u5b63\u7ec8/\u517113\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\u7b2c\u56db\u5b63", "id": "318" }, { "pic": "https://pic.yefu365.com/uploads/allimg/201711/4af7bc08bb565aca.jpg", "state": "\u672c\u5b63\u7ec8/\u517112\u96c6", "name": "\u7f8e\u56fd\u6050\u6016\u6545\u4e8b\u7b2c\u4e94\u5b63", "id": "588" }]
             },
-            getVideo(number){
+            getVideo(number) {
                 fetch('/video/' + number, { credentials: 'include' })
                     .then(response => response.json())
                     .then(json => {
                         this.episodes = json.playlist
+                        this.isVideoPage = true
                     })
+
             },
-            pickEpisode(index){
-                alert(index)
-                this.url=this.episodes[index][0]
-                // this.url=' https://fenxiang2.meiju2018.com/20181005/zHe9BY3j/index.m3u8'
-                console.log(this.episodes[index][0])
+            pickEpisode(index) {
+                this.pickEpisodeIndex = index
+                this.url = this.episodes[index][0]
+                console.log(this.url)
+                this.loadVideo(line)
+
+            },
+            pickLine(line) {
+                console.log(line)
+                this.loadVideo(line)
+            },
+            loadVideo(url) {
+                let type = url.split('.').pop().toLocaleLowerCase()
+                switch (type) {
+                    case 'm3u8': type = "application/x-mpegURL"; break;
+                    case 'mp4': type = "video/mp4"; break;
+                    case 'webm': type = "video/webm"; break;
+                    case 'ogg': type = "video/ogg"; break;
+                }
                 var player = videojs('my-player');
-                player.src(this.url)
+                player.src(url)
+                player.type(type)
                 player.play()
+            },
+            test() {
+                var player = videojs('my-player');
+                player.pause()
             }
         },
         created() {
@@ -157,20 +184,25 @@
     #container {
         width: 100%;
         height: 100%;
-        display: flex;
-        justify-content: space-between;
+        /* display: flex;
+        justify-content: space-between; */
     }
 
     #video {
         /* width: 600px; */
         /* height: 300px; */
         /* background-color: black; */
+        margin: 20px;
+        border: 1px solid #777;
+        border-radius: 5px;
     }
 
     #result {
-        width: 300px;
+        /* width: 300px; */
         height: 100%;
-        background-color: #aaa;
+        /* background-color: #aaa; */
+        display: flex;
+        flex-wrap: wrap;
         overflow-x: hidden;
         overflow-y: scroll;
     }
@@ -184,12 +216,13 @@
         border: 1px solid #777;
         border-radius: 5px;
         margin: 10px;
-        width: 250px;
+        width: 100%;
+        height: 200px;
         display: flex;
     }
 
     .video-img {
-        /* width: 40px; */
-        height: 100px;
+        width: 150px;
+        height: 200px;
     }
 </style>

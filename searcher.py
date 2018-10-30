@@ -7,15 +7,20 @@ from bs4 import BeautifulSoup as bs
 
 
 async def fetch(request):
-    print(request.body)
+    # print(request.body)
     http_client = httpclient.AsyncHTTPClient()
+    request.headers['User-Agent'] \
+        = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:62.0) Gecko/20100101 Firefox/62.0'
+    print('headers', request.headers)
     try:
         response = await http_client.fetch(request)
+        # print(response.body)
+        return response.body.decode()
     except Exception as e:
         print("Error: %s" % e)
     else:
-        print(response.body)
-        return response.body.decode()
+        # print(response.body)
+        pass
 
 
 class Search(tornado.web.RequestHandler):
@@ -47,14 +52,15 @@ class Search(tornado.web.RequestHandler):
 
 class Video(tornado.web.RequestHandler):
     async def get(self, number):
-        url = 'https://www.imeiju.cc/Meiju/M' + number + '.html'
+        # url = 'https://www.imeiju.cc/Meiju/M' + number + '.html'
+        # request = httpclient.HTTPRequest(url)
+        # html = await fetch(request)
+        # soup = bs(html)
+        # url = 'https://www.imeiju.cc/' + soup.find('div', id='playlist').find('li').find('a')['href']
+        url = 'https://www.imeiju.cc/Play/'+number+'-0-0.html'
         request = httpclient.HTTPRequest(url)
         html = await fetch(request)
-        soup = bs(html)
-        url = 'https://www.imeiju.cc/' + soup.find('div', id='playlist').find('li').find('a')['href']
-        request = httpclient.HTTPRequest(url)
-        html = await fetch(request)
-        print(re.findall(r'VideoInfoList=".+?"', str(html)))
+        # print(re.findall(r'VideoInfoList=".+?"', str(html)))
         playlist = re.findall(r'VideoInfoList=".+?"', str(html))[0][15:][:-1]
         lines = playlist.split('$$$')
 
