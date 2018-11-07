@@ -27,11 +27,17 @@ def get_img():
 
 async def async_get_html(url):
     print(url)
-    t = time.time()
-    client = httpclient.AsyncHTTPClient()
-    r = await client.fetch(url)
-    print(r.code, url, time.time() - t)
-    return r.body
+    try:
+        t = time.time()
+        client = httpclient.AsyncHTTPClient()
+        request = httpclient.HTTPRequest(url,follow_redirects=False)
+        r = await client.fetch(request)
+        print(r.code, url, time.time() - t)
+    finally:
+        if r.code == 200:
+            return r.body
+        else:
+            raise
 
 
 def parse_html(html):
@@ -45,7 +51,7 @@ def parse_html(html):
             long = int(long[0]) * 60 + int(long[1])
         elif len(long) == 3:
             long = int(long[0]) * 3600 + int(long[1]) * 60 + int(long[2])
-        print(code, name, long)
+        # print(code, name, long)
         data = {
             'code': code,
             'name': name,
@@ -60,25 +66,39 @@ class IndexMaker(object):
         if not config:
             config = {
                 'index': 0,
-                'pool': []
+                'working_pool': [],
+                'returned_pool': []
             }
             conf.insert(config)
         self.index = config['index']
-        self.returned_index_pool = set(config['pool'])
+        self.returned_index_pool = set(config['returned_pool'])
+        self.returned_index_pool.update(set(config['working_pool']))
+        self.working_index_pool = set()
 
     def get_index(self):
         if self.returned_index_pool:
             i = self.returned_index_pool.pop()
-            conf.update({}, {'$set': {'pool': list(self.returned_index_pool)}})
+            self.working_index_pool.add(i)
+            conf.update({}, {'$set': {'returned_pool': list(self.returned_index_pool),
+                                      'working_pool': list(self.working_index_pool)}})
             return i
         else:
+            index = self.index
             self.index += 60
-            conf.update({}, {'$set': {'index': self.index}})
-            return self.index
+            self.working_index_pool.add(index)
+            conf.update({}, {'$set': {'index': self.index,
+                                      'working_pool': list(self.working_index_pool)}})
+            return index
 
     def returned_index(self, index):
         self.returned_index_pool.add(index)
-        conf.update({}, {'$set': {'pool': list(self.returned_index_pool)}})
+        self.working_index_pool.remove(index)
+        conf.update({}, {'$set': {'returned_pool': list(self.returned_index_pool),
+                                  'working_pool': list(self.working_index_pool)}})
+
+    def finished_index(self, index):
+        self.working_index_pool.remove(index)
+        conf.update({}, {'$set': {'working_pool': list(self.working_index_pool)}})
 
 
 async def main():
@@ -114,10 +134,11 @@ async def main():
             try:
                 url = 'https://motherless.com/videos/archives?i=' + str(index)
                 parse_html(await async_get_html(url))
+                im.finished_index(index)
             except:
                 im.returned_index(index)
 
-    workers = gen.multi([worker() for _ in range(1)])
+    workers = gen.multi([worker() for _ in range(3)])
     await workers
 
 
