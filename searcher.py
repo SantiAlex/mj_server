@@ -57,7 +57,7 @@ class Video(tornado.web.RequestHandler):
         # html = await fetch(request)
         # soup = bs(html)
         # url = 'https://www.imeiju.cc/' + soup.find('div', id='playlist').find('li').find('a')['href']
-        url = 'https://www.imeiju.cc/Play/'+number+'-0-0.html'
+        url = 'https://www.imeiju.cc/Play/' + number + '-0-0.html'
         request = httpclient.HTTPRequest(url)
         html = await fetch(request)
         # print(re.findall(r'VideoInfoList=".+?"', str(html)))
@@ -78,11 +78,23 @@ class Video(tornado.web.RequestHandler):
         self.write({'playlist': index_url})
 
 
+class Img(tornado.web.RequestHandler):
+    def get(self):
+        from pymongo import MongoClient
+        client = MongoClient('localhost', 27017)
+        db = client['pm']['pm']
+        data = db.find_one({'code': '916D11F'})['img']
+        print(data)
+        self.set_header('Content-Type', 'image/jpg')
+        self.write(data)
+
+
 class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             (r"/search/(?P<word>[\s\S]*)", Search),
             (r"/video/(?P<number>[\s\S]*)", Video),
+            (r"/test", Img),
         ]
         settings = {
             'static_path': 'app',
