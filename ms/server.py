@@ -6,7 +6,7 @@ import re
 from bs4 import BeautifulSoup as bs
 from pymongo import MongoClient
 
-client = MongoClient('localhost', 27017)
+client = MongoClient('192.168.0.21', 27017)
 db = client['pm']['pm']
 
 
@@ -100,11 +100,27 @@ class Thumbs(tornado.web.RequestHandler):
             self.send_error(404)
 
 
+class Archives(tornado.web.RequestHandler):
+    def get(self):
+        min_long = int(self.get_argument('min', 0))
+        max_long = int(self.get_argument('max', 99999))
+        key_word = self.get_argument('key', '')
+        print(min_long, max_long, key_word)
+        data = db.find({'long': {'$gt': min_long, '$lt': max_long}, 'name': {'$regex': key_word, '$options': 'i'}},
+                       {'code': 1})
+        code_list = []
+        print(data.count())
+        for i in data:
+            print(i)
+            code_list.append(i['code'])
+        self.write({'code': code_list})
+
+
 class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             (r"/thumbs/(?P<code>[\s\S]*)", Thumbs),
-            (r"/video/(?P<number>[\s\S]*)", Video),
+            (r"/archives", Archives),
         ]
         settings = {
             'static_path': 'app',
