@@ -52,7 +52,7 @@
             }
         },
         created() {
-            fetch('/archives?min=2459&max=2520', { credentials: 'include' })
+            fetch('/archives?min=7200&max=99999', { credentials: 'include' })
                 .then(response => response.json())
                 .then(json => {
                     this.list = json.code

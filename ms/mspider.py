@@ -5,7 +5,7 @@ import time
 from tornado import httpclient, gen, ioloop, queues
 from pymongo import MongoClient
 
-mongo_client = MongoClient('localhost', 27017)
+mongo_client = MongoClient('192.168.0.21', 27017)
 db = mongo_client['pm']['pm']
 conf = mongo_client['pm']['conf']
 
@@ -30,7 +30,7 @@ async def async_get_html(url):
     try:
         t = time.time()
         client = httpclient.AsyncHTTPClient()
-        request = httpclient.HTTPRequest(url,follow_redirects=False)
+        request = httpclient.HTTPRequest(url, follow_redirects=False)
         r = await client.fetch(request)
         print(r.code, url, time.time() - t)
     finally:
@@ -142,6 +142,29 @@ async def main():
     await workers
 
 
+async def img_main():
+    cursor = db.find({'long': {'$gt': 1459, '$lt': 2460}, 'img': None}, {'code': 1})
+    code_list = []
+    for i in cursor:
+        code_list.append(i['code'])
+
+    async def worker():
+        while code_list:
+            code = code_list.pop()
+
+            url = 'https://cdn4.thumbs.motherlessmedia.com/thumbs/' + code + '-strip.jpg'
+            request = httpclient.HTTPRequest(url, follow_redirects=False)
+            r = await httpclient.AsyncHTTPClient().fetch(request)
+            if r.code == 200:
+                db.update({'code': code}, {'$set': {'img': r.body}}, True)
+                print(code)
+            else:
+                print('=================: ', code)
+
+    workers = gen.multi([worker() for _ in range(60)])
+    await workers
+
+
 if __name__ == '__main__':
     io_loop = ioloop.IOLoop.current()
-    io_loop.run_sync(main)
+    io_loop.run_sync(img_main)

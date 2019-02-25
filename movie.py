@@ -20,12 +20,17 @@ class LogHandler(web.RequestHandler):
             data = re.sub(pattern, '', data)
             pattern = re.compile(r'<a id="gzwx">[\s\S]+?</a>')
             data = re.sub(pattern, '', data)
+
+            # 替换播放器
+            # pattern = re.compile(r'<iframe src="http[\s\S]+?\?url=http')
+            # data = re.sub(pattern, '<iframe src="https://xigualab.net/player/http', data)
+
             data = data.replace('overflow: hidden', "")
             data = data.replace('href="/', 'href="' + '/' + sub_path + '/')
             data = data.replace('src="/', 'src="' + '/' + sub_path + '/')
             data = data.replace('/index.php/search', '/' + sub_path + '/index.php/search')
             data = data.replace('请发送邮箱值xiakai920@gmail.com，', '')
-
+            # data = data.replace('https://www.liwoba.com/ckx/index.php?url=', 'https://xigualab.net/player/')
 
         else:
             data = response.body
